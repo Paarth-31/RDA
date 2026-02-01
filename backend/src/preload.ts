@@ -1,5 +1,5 @@
 import {contextBridge} from 'electron';
 
-contextBridge.exposeInMainWorld('electronAPI, {
+contextBridge.exposeInMainWorld('electronAPI', {
 				//Later use
 });

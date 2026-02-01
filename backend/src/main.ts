@@ -20,7 +20,7 @@ async function createWindow() {
     await mainWindow.loadURL(`file://${__dirname}/../renderer/out/index.html`);
   } else {
 //    const port = process.argv[2];
-    await mainWindow.loadURL(`http://localhost:3000`);
+    await mainWindow.loadURL(`http://localhost:5173`);
     mainWindow.webContents.openDevTools();
   }
 }

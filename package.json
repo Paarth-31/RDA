@@ -3,9 +3,10 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev:signaling\" \"npm run dev:frontend\" \"npm run dev:desktop\"",
-    "dev:desktop": "wait-on http://localhost:3000 && npm run dev --prefix desktop-backend",
+    "dev:frontend":"cd frontend && npm run dev",
+    "dev:desktop": "wait-on http://localhost:5173 && npm run dev --prefix backend",
     "dev:signaling": "cd signaling-server && npm run dev",
-    "install:all": "npm install && cd frontend && npm install && cd ../desktop-backend && npm install && cd ../signaling-server && npm install"
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../signaling-server && npm install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
