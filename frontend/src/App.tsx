@@ -54,23 +54,31 @@
 
 
 import { useState } from 'react';
+import ReactPlayer from 'react-player'; //Paarth - import player
 import { Navbar } from '@/components/layout/Navbar';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { HostCard } from '@/components/sections/HostCard';
 import { JoinCard } from '@/components/sections/Joincard';
 import { RecentSessions } from '@/components/sections/RecentSessions'; // New File
 import { ContextDropdown } from '@/components/sections/ContextDropdown'; // New File
+import { usePeerConnection } from './hooks/usePeerConnection'; //Paarth - importing hook for connection 
 
 export default function App() {
-  const [myId, setMyId] = useState("00675699665");
-  const [remoteId, setRemoteId] = useState("");
+	const [myId, setMyId] = useState("00675699665");
+	const [remoteId, setRemoteId] = useState("");
+
+	//Paarth - WebRTC Initialise for screen share
+	const{
+		startScreenShare, myStream, remoteStream, connectionStatus
+	} = usePeerConnection(myId, remoteId);
+	
 
   const handleGenerateId = () => {
     setMyId(Math.floor(10000000000 + Math.random() * 90000000000).toString());
   };
 
   const handleJoin = () => {
-    alert(`Connecting to ${remoteId}...`);
+    alert(`Ready to connect to ${remoteId}...`);
   };
 
   return (
@@ -81,17 +89,59 @@ export default function App() {
         
         <HeroSection myId={myId} />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl relative">
-          <HostCard handleGenerateId={handleGenerateId} />
-          <JoinCard remoteId={remoteId} setRemoteId={setRemoteId} handleJoin={handleJoin} />
-          
-          {/* This places the menu exactly where it is in the screenshot */}
-          <ContextDropdown />
-        </div>
+		{/* Paarth - Status indicator for Connection Status*/}
+		<div className={`mb-4 px-4 py-2 rounded-full text-sm font-semibold ${
+			connectionStatus === 'Connected' ? 'bg-green-500/20 text-green-400' : 'bg-gray-800 text-gray-400'
+		}`}>
+			Status: {connectionStatus}
+		</div>
+
+		{/* If stream exists, we show video player, otherwise card grid.*/}
+		{(myStream || remoteStream) ? (
+			<div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in zoom-in">
+				{/* My Screen*/}
+				<div className="bg-black/50 border border-white/10 rounded-xl overflow-hidden relative aspect-video">
+					<p className="absolute top-2 left-2 bg-black/60 px-2 rounded text-xs">My Screen</p>
+					{myStream && <ReactPlayer playing muted url={myStream} width="100%" height="100%" />}
+				</div>
+
+				{/* Remote Screen*/}
+				<div className="bg-black/50 border border-white/10 rounded-xl overflow-hidden relative aspect-video">
+					<p className="absolute top-2 left-2 bg-black/60 px-2 rounded text-xs">Remote Screen</p>
+					{remoteStream ? (
+						<ReactPlayer playing url={remoteStream} width="100%" height="100%" />
+					) : (
+						<div className="flex items-center justify-center h-full text-gray-500">Waiting for stream...</div>
+					)}
+				</div>
+				
+				{/*Button to stop/reset could go here*/}
+				<button onClick={() => window.location.reload()} className="col-span-full md:col-span-2 bg-red-500/20 hover:bg-red-500/40 text-red-500 oy-2 rounded transition">
+					End Session
+				</button>
+			</div>
+		) : (
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl relative">
+				<div className="flex flex-col gap-2">
+					<HostCard handleGenerateId={handleGenerateId} />
+	  				{/*Paarth -screen share button*/}
+	  				<button onClick={startScreenShare} className="bg-blue-600 hover:bg-blue-500 text-white py-2 rounded font-medium transition">
+						📷 Start Screen Share
+	  				</button>
+				</div>
+				
+				{/*Aayushi code - UI*/}
+				<JoinCard remoteId={remoteId} setRemoteId={setRemoteId} handleJoin={handleJoin} />
+				{/* This places the menu exactly where it is in the screenshot */}
+				<ContextDropdown />
+			</div>
+		)}
 
         {/* The bottom list from the screenshot */}
-        <RecentSessions />
-
+        <div className="mt-12 w-full max-w-4xl">
+			<RecentSessions />
+		</div>
+		
       </main>
     </div>
   );
