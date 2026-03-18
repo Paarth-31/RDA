@@ -1,22 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-import https from 'https';
+import http from 'http';
 import {Server} from 'socket.io';
 import { setupSocketEvents } from './events';
 
 const PORT=8080;
 
-const sslOptions = {
-	key: fs.readFileSync(path.join(__dirname, '../certs/key.pem')),
-	cert: fs.readFileSync(path.join(__dirname, '../certs/cert.pem')),
-};
-
-const httpsServer = https.createServer(sslOptions, (req,res) => {
+const httpServer = http.createServer(sslOptions, (req,res) => {
 	res.writeHead(200);
 	res.end('RDA Secure Signaling Server');
 });
 
-const io=new Server(httpsServer, {
+const io=new Server(httpServer, {
 	cors:{
 		//SECURITY: Only allow Frontend and Electron app
 		origin: ["https://localhost:3000", "file://"],
@@ -46,6 +41,6 @@ io.use((socket, next) => {
 //4. Attach the Logic from events.ts
 setupSocketEvents(io);
 
-httpsServer.listen(PORT, () => {
+httpServer.listen(PORT, () => {
 	console.log(`🔒 Secure Signaling Server running on wss://localhost:${PORT}`);
 });

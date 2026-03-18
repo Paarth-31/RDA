@@ -3,20 +3,8 @@ import path from 'path';
 
 //Options added for testing screen share
 app.disableHardwareAcceleration();
-app.commandLine.appendSwitch('ignore-certificate-errors');
-app.commandLine.appendSwitch('allow-insecure-localhost', 'true');
-// --- ADD THIS BLOCK: The Nuclear Option for WSS ---
-app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
-  // On certificate error we disable default behaviour (block connection)
-  // and call callback(true) to instruct electron to allow the connection
-  if (url.startsWith('wss://localhost') || url.startsWith('https://localhost')) {
-    event.preventDefault();
-    callback(true);
-  } else {
-    callback(false);
-  }
-});
-//
+//app.commandLine.appendSwitch('ignore-certificate-errors');
+//app.commandLine.appendSwitch('allow-insecure-localhost', 'true');
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -28,7 +16,7 @@ async function createWindow() {
     height: 720,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false,
+      contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
     },
   });

@@ -8,7 +8,7 @@ export const useSocket=()=>{
 
 export const SocketProvider:React.FC<{children:React.ReactNode}>=({children})=>{
     const socket=useMemo(()=>{
-        return io("http://localhost:8080");
+        return io("http://rda-signaling.duckdns.org");
     },[]);
     return(
         <SocketContext.Provider value={socket}>

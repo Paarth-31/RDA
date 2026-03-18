@@ -2,7 +2,7 @@ import {useEffect, useState, useCallback} from "react";
 import {io, Socket} from "socket.io-client";
 import peer from "../services/peer";
 
-const SERVER_URL = "https://localhost:8080";
+const SERVER_URL = "https://rda-signaling.duckdns.org";
 export const usePeerConnection = (myEmail: string, roomId:string) => {
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const [myStream, setMyStream] = useState<MediaStream | null>(null);

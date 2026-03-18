@@ -1,6 +1,6 @@
 import { io, Socket } from "socket.io-client";
 
-const SERVER_URL = "https://localhost:8080";
+const SERVER_URL = "https://rda-signaling.duckdns.org";
 const ROOM_ID = "test-secure-room";
 
 //Options for Self-Signed Certs(Development Only)
