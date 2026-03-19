@@ -6,7 +6,7 @@ import { setupSocketEvents } from './events';
 
 const PORT=8080;
 
-const io = new Server(server, {
+const io = new Server(Server, {
 	cors: {
 		origin: "*",
 		methods: ["GET", "POST"]
