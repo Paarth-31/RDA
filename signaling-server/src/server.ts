@@ -6,9 +6,33 @@ import { setupSocketEvents } from './events';
 
 const PORT=8080;
 
-const httpServer = http.createServer((req,res) => {
-	res.writeHead(200);
-	res.end('RDA Secure Signaling Server');
+// 1. Create the HTTP Server with explicit CORS headers
+const httpServer = http.createServer((req, res) => {
+    // Force the raw server to allow cross-origin traffic
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+
+    // Handle the silent CORS preflight check safely
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+
+    // Standard response
+    res.writeHead(200);
+    res.end('RDA Secure Signaling Server is Live!');
+});
+
+// 2. Attach Socket.io ONCE (Keep this exactly as you have it)
+const io = new Server(httpServer, {
+    cors: {
+        origin: "*", 
+        methods: ["GET", "POST"]
+    },
+    allowEIO3: false,
+    transports: ['websocket', 'polling']
 });
 
 const io=new Server(httpServer, {
