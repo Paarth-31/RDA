@@ -6,6 +6,13 @@ import { setupSocketEvents } from './events';
 
 const PORT=8080;
 
+const io = new Server(server, {
+	cors: {
+		origin: "*",
+		methods: ["GET", "POST"]
+	}
+});
+
 const httpServer = http.createServer((req,res) => {
 	res.writeHead(200);
 	res.end('RDA Secure Signaling Server');
