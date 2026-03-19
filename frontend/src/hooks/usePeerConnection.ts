@@ -13,8 +13,7 @@ export const usePeerConnection = (myEmail: string, roomId:string) => {
 	//Setup Socket Connection
 	useEffect(() => {
 		const newSocket = io(SERVER_URL, {
-			rejectUnauthorized: false,
-			transports: ['websocket']
+			rejectUnauthorized: false
 		});
 		setSocket(newSocket);
 		newSocket.on('connect', () => setStatus("Connected"));

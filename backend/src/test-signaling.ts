@@ -5,8 +5,7 @@ const ROOM_ID = "test-secure-room";
 
 //Options for Self-Signed Certs(Development Only)
 const OPTIONS = {
-	transports: ["websocket"], //Force WebSocket
-	rejectUnauthorized: false, //Trust self-signed certs
+	rejectUnauthorized: false //Trust self-signed certs
 };
 
 //Helper to create a client

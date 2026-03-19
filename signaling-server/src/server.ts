@@ -32,7 +32,7 @@ const io = new Server(httpServer, {
         methods: ["GET", "POST"]
     },
     allowEIO3: false,
-    transports: ['websocket', 'polling']
+//    transports: ['websocket', 'polling']
 });
 
 //3. Rate Limitng (DoS Protection)
