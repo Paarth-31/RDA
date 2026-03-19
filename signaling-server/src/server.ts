@@ -6,13 +6,6 @@ import { setupSocketEvents } from './events';
 
 const PORT=8080;
 
-const io = new Server(Server, {
-	cors: {
-		origin: "*",
-		methods: ["GET", "POST"]
-	}
-});
-
 const httpServer = http.createServer((req,res) => {
 	res.writeHead(200);
 	res.end('RDA Secure Signaling Server');
@@ -20,13 +13,11 @@ const httpServer = http.createServer((req,res) => {
 
 const io=new Server(httpServer, {
 	cors:{
-		//SECURITY: Only allow Frontend and Electron app
-		origin: ["https://localhost:3000", "file://"],
+		origin: ["*"],
 		methods:["GET","POST"],
-		credentials: true
 	},
 	allowEIO3: false, //Disable older, less secure protocol versions
-	transports: ['websocket'],
+	transports: ['websocket', 'polling'],
 });
 
 //3. Rate Limitng (DoS Protection)
