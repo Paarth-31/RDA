@@ -35,15 +35,6 @@ const io = new Server(httpServer, {
     transports: ['websocket', 'polling']
 });
 
-const io=new Server(httpServer, {
-	cors:{
-		origin: ["*"],
-		methods:["GET","POST"],
-	},
-	allowEIO3: false, //Disable older, less secure protocol versions
-	transports: ['websocket', 'polling'],
-});
-
 //3. Rate Limitng (DoS Protection)
 const rateMap = new Map<string, number>();
 
