@@ -1,0 +1,4 @@
+WEBRTC
+
+1.media capture devices(video cameras and microphones,screen recording)->use navigator.mediaDevices.getUserMedia to capture mediaStreams.. for screen recording->navigator.mediaDevies.getDisplayMedia,
+2.peer to peer connectivity by RTcPeerConnection interface.

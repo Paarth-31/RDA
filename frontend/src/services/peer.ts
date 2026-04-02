@@ -5,11 +5,14 @@ class PeerService{
 		if(!this.peer){
 			this.peer = new RTCPeerConnection({
 				iceServers: [
-					{ urls: "stun:stun.l.google.com:19302", },
-					//ADD TURN SERVER HERE
+					{
+                  		urls: "turns:rda-turnserver.duckdns.org:5349", // <-- turns: and 5349 are crucial!
+    					username: "rda",
+    					credential: "rda123",
+}
 				],
 			});
-		}
+		}	
 	}
 	
 	//Create Offer(User A initiation)
