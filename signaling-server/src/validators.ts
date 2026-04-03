@@ -1,6 +1,6 @@
 export const isValidRoomId = (id: any): boolean => {
   // Allow alphanumeric, dashes, underscores. Max 50 chars.
-  return typeof id === 'string' && /^[a-zA-Z0-9-_]{1,50}$/.test(id);
+  return typeof id === 'string' && id.length>0 && id.length<=64;
 };
 
 export const isValidSDP = (data: any): boolean => {

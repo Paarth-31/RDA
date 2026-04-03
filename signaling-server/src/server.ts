@@ -37,6 +37,7 @@ const io = new Server(httpServer, {
 
 //3. Rate Limitng (DoS Protection)
 const rateMap = new Map<string, number>();
+setInterval(() => rateMap.clear(), 60_000);
 
 io.use((socket, next) => {
 	const ip = socket.handshake.address;

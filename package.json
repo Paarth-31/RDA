@@ -1,6 +1,7 @@
 {
   "name": "RDA",
   "private": true,
+  "main": "backend/dist/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:signaling\" \"npm run dev:frontend\" \"npm run dev:desktop\"",
     "dev:frontend": "cd frontend && npm run dev",

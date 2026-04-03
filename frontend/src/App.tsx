@@ -152,7 +152,7 @@
 
 
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { HostCard } from '@/components/sections/HostCard';
@@ -162,34 +162,43 @@ import { ContextDropdown } from '@/components/sections/ContextDropdown';
 import { usePeerConnection } from './hooks/usePeerConnection';
 
 export default function App() {
-    const [myId, setMyId] = useState("00675699665");
-    const [remoteId, setRemoteId] = useState("");
+    const generateId = () => Math.floor(10000000000 + Math.random() * 90000000000).toString();
+    const [myId, setMyId] = useState(generateId);
+    const [remoteId, setRemoteId] = useState("");  // ← was missing
+    const [availableSources, setAvailableSources] = useState<any[]>([]);
+    const [showPicker, setShowPicker] = useState(false);
 
-    // Refs for the video elements
-    const myVideoRef = useRef<HTMLVideoElement>(null);
-    const remoteVideoRef = useRef<HTMLVideoElement>(null);
-
-    // WebRTC Hook
     const {
-        startScreenShare, myStream, remoteStream, connectionStatus, connectToPeer // Assuming your hook will export this for the Join button
+        startScreenShare, myStream, remoteStream, connectionStatus, connectToPeer
     } = usePeerConnection(myId, remoteId);
 
-    // Effect to attach local stream to the "My Screen" video tag
-    useEffect(() => {
-        if (myStream && myVideoRef.current) {
-            myVideoRef.current.srcObject = myStream;
-        }
-    }, [myStream]);
-
-    // Effect to attach remote stream to the "Remote Screen" video tag
-    useEffect(() => {
-        if (remoteStream && remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = remoteStream;
+    const remoteVideoRef = useCallback((node: HTMLVideoElement | null) => {
+        if (node && remoteStream) {
+            node.srcObject = remoteStream;
         }
     }, [remoteStream]);
 
+    const myVideoRef = useCallback((node: HTMLVideoElement | null) => {
+        if (node && myStream) {
+            node.srcObject = myStream;
+        }
+    }, [myStream]);
+
+    useEffect(() => {
+        // Listen for sources sent from main process
+        (window as any).electronAPI?.onSourcesResponse((sources: any[]) => {
+            setAvailableSources(sources);
+            setShowPicker(true);
+        });
+    }, []);
+
+    const handleSourceSelect = (sourceId: string) => {
+        (window as any).electronAPI?.selectSource(sourceId);
+        setShowPicker(false);
+    };
+
     const handleGenerateId = () => {
-        setMyId(Math.floor(10000000000 + Math.random() * 90000000000).toString());
+        setMyId(generateId());
     };
 
     const handleJoin = () => {
@@ -197,11 +206,8 @@ export default function App() {
             alert("Please enter a valid Remote ID to connect.");
             return;
         }
-        // Logic to initiate WebRTC offer
         if (connectToPeer) {
             connectToPeer(remoteId);
-        } else {
-            console.warn("connectToPeer function not found in usePeerConnection hook.");
         }
     };
 
@@ -213,18 +219,15 @@ export default function App() {
                 
                 <HeroSection myId={myId} />
 
-                {/* Connection Status Indicator */}
                 <div className={`mb-4 px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${
                     connectionStatus === 'Connected' ? 'bg-green-500/20 text-green-400' : 'bg-gray-800 text-gray-400'
                 }`}>
                     Status: {connectionStatus}
                 </div>
 
-                {/* Video Stream Section */}
                 {(myStream || remoteStream) ? (
                     <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in zoom-in duration-500">
                         
-                        {/* My Local Screen Container */}
                         <div className="bg-black/50 border border-white/10 rounded-xl overflow-hidden relative aspect-video shadow-2xl">
                             <p className="absolute top-3 left-3 bg-black/60 px-2 py-1 rounded text-xs font-medium z-20 border border-white/5">
                                 My Screen (Broadcasting)
@@ -238,7 +241,6 @@ export default function App() {
                             />
                         </div>
 
-                        {/* Remote Screen Container */}
                         <div className="bg-black/50 border border-white/10 rounded-xl overflow-hidden relative aspect-video shadow-2xl">
                             <p className="absolute top-3 left-3 bg-black/60 px-2 py-1 rounded text-xs font-medium z-20 border border-white/5">
                                 Remote Screen
@@ -258,7 +260,6 @@ export default function App() {
                             )}
                         </div>
                         
-                        {/* End Session Button */}
                         <button 
                             onClick={() => window.location.reload()} 
                             className="col-span-full bg-red-500/10 hover:bg-red-500/20 text-red-500 py-3 rounded-lg border border-red-500/20 transition-all font-medium"
@@ -267,7 +268,6 @@ export default function App() {
                         </button>
                     </div>
                 ) : (
-                    /* Setup Section */
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl relative">
                         <div className="flex flex-col gap-4">
                             <HostCard handleGenerateId={handleGenerateId} />
@@ -293,7 +293,31 @@ export default function App() {
                 <div className="mt-12 w-full max-w-4xl">
                     <RecentSessions />
                 </div>
-                
+                {showPicker && (
+                    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-6">
+                        <div className="bg-gray-900 rounded-xl p-6 w-full max-w-2xl">
+                            <h2 className="text-white font-semibold text-lg mb-4">Choose what to share</h2>
+                            <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                                {availableSources.map(source => (
+                                    <button
+                                        key={source.id}
+                                        onClick={() => handleSourceSelect(source.id)}
+                                        className="bg-gray-800 hover:bg-gray-700 rounded-lg p-3 flex flex-col items-center gap-2 transition-all border border-white/10 hover:border-blue-500/50"
+                                    >
+                                        <img src={source.thumbnail} className="w-full rounded" alt={source.name} />
+                                        <span className="text-white text-xs text-center truncate w-full">{source.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => setShowPicker(false)}
+                                className="mt-4 w-full py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-all"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

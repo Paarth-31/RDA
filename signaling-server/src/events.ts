@@ -38,15 +38,26 @@ export const setupSocketEvents = (io: Server) => {
 			});
 		});
 
-		//3. Relay Answer (Accept-Call)
+
 		socket.on('answer-call', (data) => {
-			const { to, signal } = data;
-
-			if(!isValidSDP(signal)) return;
-
-			//Relay: "Hey User A, User B accepted your call"
-			io.to(to).emit('call-accepted', signal);
+    		const { to, signal } = data;
+    		console.log("answer-call received, to:", to);
+    		console.log("answer-call signal:", signal);          // ← add this
+    		if (!isValidSDP(signal)) {
+        		console.log("SDP VALIDATION FAILED");            // ← add this
+        		return;
+    		}
+    		io.to(to).emit('call-accepted', { signal });
+    		console.log("call-accepted emitted to:", to);        // ← add this
 		});
+
+		// //3. Relay Answer (Accept-Call)
+		// socket.on('answer-call', (data) => {
+		// 	const { to, signal } = data;
+		// 	if(!isValidSDP(signal)) return;
+		// 	//Relay: "Hey User A, User B accepted your call"
+		// 	io.to(to).emit('call-accepted', { signal });
+		// });
 
 		//4. Relay ICE Candidate
 		socket.on('ice-candidate', (data) => {
