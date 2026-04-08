@@ -1,7 +1,42 @@
-node_modules
-dist
-out
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Environment files — NEVER commit these
 .env
+.env.local
+.env.development
+.env.production
+.env.*.local
 *.pem
-certs/
-Auth
+rds-ca.pem
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Electron
+electron/dist/
+
+# Test coverage
+coverage/

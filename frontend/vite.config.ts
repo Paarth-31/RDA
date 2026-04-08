@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   server:{
-    open:false,
+    //open:false,
     port:5173,
     strictPort:true,
   }

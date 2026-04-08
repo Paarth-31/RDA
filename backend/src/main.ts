@@ -1,148 +1,3 @@
-// // import { app, BrowserWindow, desktopCapturer } from 'electron';
-// // import path from 'path';
-
-// // //Options added for testing screen share
-// // app.disableHardwareAcceleration();
-// // //app.commandLine.appendSwitch('ignore-certificate-errors');
-// // //app.commandLine.appendSwitch('allow-insecure-localhost', 'true');
-
-// // const isProd = process.env.NODE_ENV === 'production';
-
-// // let mainWindow: BrowserWindow | null = null;
-
-// // async function createWindow() {
-// //   mainWindow = new BrowserWindow({
-// //     width: 1280,
-// //     height: 720,
-// //     webPreferences: {
-// //       nodeIntegration: true,
-// //       contextIsolation: true,
-// //       preload: path.join(__dirname, 'preload.js'),
-// //     },
-// //   });
-
-// //   mainWindow.webContents.session.setDisplayMediaRequestHandler((request, callback) => {
-// //   	  //This autpmatically selects the primary screen to share
-// //   	  if (sources.length>0) {
-// //   	  	  callback({video:sources[0], audio: 'loopback' });
-// // 	  }
-// //   }).catch((err) => {
-// //   	  console.error("Failed to capture screen: ", err);
-// //   }});
-// //   });
-// //   // --- 🔴 THE FIX: Force Trust for WSS ---
-// //   // This intercepts the certificate check for the specific window session
-// //   // and returns '0' (OK) to bypass the error.
-// //   mainWindow.webContents.session.setCertificateVerifyProc((request, callback) => {
-// //     callback(0); // 0 = Verified/Success
-// //   });
-// //   // --------------------------------------
-
-// //   if (isProd) {
-// //     await mainWindow.loadURL(`file://${__dirname}/../renderer/out/index.html`);
-// //   } else {
-// // //    const port = process.argv[2];
-// //     await mainWindow.loadURL(`http://localhost:5173`);
-// //     mainWindow.webContents.openDevTools();
-// //   }
-// // }
-
-// // app.on('ready', () => {
-// //   createWindow();
-// // });
-
-// // app.on('window-all-closed', () => {
-// //   if (process.platform !== 'darwin') {
-// //     app.quit();
-// //   }
-// // });
-
-
-
-
-// import { app, BrowserWindow, desktopCapturer, ipcMain } from 'electron';
-// import path from 'path';
-
-// // Options added for stability during screen capture
-// app.disableHardwareAcceleration();
-
-// const isProd = process.env.NODE_ENV === 'production';
-// let mainWindow: BrowserWindow | null = null;
-
-// async function createWindow() {
-//   mainWindow = new BrowserWindow({
-//     width: 1280,
-//     height: 720,
-//     webPreferences: {
-//       nodeIntegration: false, // Security best practice
-//       contextIsolation: true, // Required for contextBridge
-//       preload: path.join(__dirname, 'preload.js'),
-//     },
-//   });
-
-//   // --- 🎥 1. Media Request Handler ---
-//   // This allows the 'navigator.mediaDevices.getDisplayMedia' call to work in Electron
-//   mainWindow.webContents.session.setDisplayMediaRequestHandler((request, callback) => {
-//     desktopCapturer.getSources({types: ['screen', 'window']}).then((sources) => {
-//       mainWindow!.webContents.send('get-sources-response',
-//         sources.map(s => ({id: s.id, name: s.name, thumbnail: s.thumbnail.toDataURL() }))
-//       );
-//     });
-//   });
-
-//   // --- 🔒 2. Trust for WSS (DuckDNS) ---
-//   // Ensures the WebSocket handshake isn't killed by certificate verification delays
-//   mainWindow.webContents.session.setCertificateVerifyProc((request, callback) => {
-//     const { hostname } = request;
-//     if (hostname === 'rda-signaling.duckdns.org') {
-//       callback(0); // 0 = Verified/Success
-//     } else {
-//       callback(-2); // -2 = Use default verification
-//     }
-//   });
-
-//   // --- 📡 3. IPC Handler for Preload ---
-//   // This listens for 'get-sources' calls from your React frontend via preload.js
-//   ipcMain.handle('get-sources', async () => {
-//     const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
-//     return sources.map(source => ({
-//       id: source.id,
-//       name: source.name,
-//       thumbnail: source.thumbnail.toDataURL(),
-//     }));
-//   });
-
-//   // --- 🌐 4. Load Application ---
-//   if (isProd) {
-//     // Path for packaged app
-//     await mainWindow.loadURL(`file://${path.join(__dirname, '../renderer/out/index.html')}`);
-//   } else {
-//     // Path for development (Vite/React)
-//     await mainWindow.loadURL(`http://localhost:5173`);
-//     mainWindow.webContents.openDevTools();
-//   }
-// }
-
-// // App Lifecycle
-// app.on('ready', createWindow);
-
-// app.on('window-all-closed', () => {
-//   if (process.platform !== 'darwin') {
-//     app.quit();
-//   }
-// });
-
-// app.on('activate', () => {
-//   if (BrowserWindow.getAllWindows().length === 0) {
-//     createWindow();
-//   }
-// });
-
-
-
-
-
-
 import { app, BrowserWindow, desktopCapturer, ipcMain } from 'electron';
 import path from 'path';
 
@@ -162,76 +17,143 @@ async function createWindow() {
     },
   });
 
-  // --- 🎥 1. Media Request Handler ---
-  // Stores the callback so we can call it after user picks a source
   let pendingCallback: ((streams: any) => void) | null = null;
 
-  mainWindow.webContents.session.setDisplayMediaRequestHandler((request, callback) => {
-    desktopCapturer.getSources({ types: ['screen', 'window'] }).then((sources) => {
-      // Store callback for later when user picks a source
-      pendingCallback = callback;
-      // Send sources to renderer so user can pick
-      mainWindow!.webContents.send(
-        'get-sources-response',
-        sources.map(s => ({
-          id: s.id,
-          name: s.name,
-          thumbnail: s.thumbnail.toDataURL(),
-        }))
-      );
-    });
-  });
+  // ── Screen capture handler — now passes audio:'loopback' ─────────────────
+  // 'loopback' tells Chromium/Electron to capture system audio alongside video.
+  // On Windows this works natively. On Linux you may need PulseAudio loopback.
+  // On macOS system audio capture requires a virtual audio driver (e.g. BlackHole).
+  mainWindow.webContents.session.setDisplayMediaRequestHandler(
+    (_request, callback) => {
+      desktopCapturer.getSources({ types: ['screen', 'window'] }).then((sources) => {
+        pendingCallback = callback;
+        mainWindow!.webContents.send(
+          'get-sources-response',
+          sources.map((s) => ({
+            id: s.id,
+            name: s.name,
+            thumbnail: s.thumbnail.toDataURL(),
+          }))
+        );
+      });
+    },
+  );
 
-  // When renderer sends back the chosen source id, call the pending callback
   ipcMain.on('select-source', (_event, sourceId: string) => {
     desktopCapturer.getSources({ types: ['screen', 'window'] }).then((sources) => {
-      const selected = sources.find(s => s.id === sourceId);
+      const selected = sources.find((s) => s.id === sourceId);
       if (selected && pendingCallback) {
-        pendingCallback({ video: selected, audio: 'loopback' }); // ← this completes getDisplayMedia
+        // audio: 'loopback' → captures system audio output (what you hear)
+        pendingCallback({ video: selected, audio: 'loopback' });
         pendingCallback = null;
       }
     });
   });
 
-  // --- 🔒 2. Trust for WSS ---
+  // ── Trust our own signaling server's self-signed cert ───────────────────
   mainWindow.webContents.session.setCertificateVerifyProc((request, callback) => {
-    const { hostname } = request;
-    if (hostname === 'rda-signaling.duckdns.org') {
-      callback(0);
+    if (request.hostname === 'rda-signaling.duckdns.org') {
+      callback(0); // 0 = trust
     } else {
-      callback(-2);
+      callback(-2); // -2 = reject
     }
   });
 
-  // --- 📡 3. IPC Handler for get-sources (kept for compatibility) ---
+  // ── IPC: get sources list (kept for compatibility) ───────────────────────
   ipcMain.handle('get-sources', async () => {
     const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
-    return sources.map(source => ({
+    return sources.map((source) => ({
       id: source.id,
       name: source.name,
       thumbnail: source.thumbnail.toDataURL(),
     }));
   });
 
-  // --- 🌐 4. Load Application ---
+  // ── IPC: robot.js mouse/keyboard forwarding ──────────────────────────────
+  // The renderer sends control events; main process executes them via robotjs.
+  // robotjs must be installed: npm install @jitsi/robotjs (Electron-compatible fork)
+  // If not installed, control events are silently ignored.
+  ipcMain.on('remote-control', (_event, action: RemoteControlAction) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const robot = require('@jitsi/robotjs');
+      executeControlAction(robot, action);
+    } catch {
+      // robotjs not installed — control feature silently unavailable
+    }
+  });
+
   if (isProd) {
     await mainWindow.loadURL(`file://${path.join(__dirname, '../renderer/out/index.html')}`);
   } else {
-    await mainWindow.loadURL(`http://localhost:5173`);
+    await mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
+  }
+}
+
+// ── Control action types ─────────────────────────────────────────────────────
+interface RemoteControlAction {
+  type: 'mousemove' | 'mousedown' | 'mouseup' | 'click' | 'scroll' | 'keydown' | 'keyup' | 'type';
+  x?: number;
+  y?: number;
+  button?: 'left' | 'right' | 'middle';
+  key?: string;
+  text?: string;
+  scrollX?: number;
+  scrollY?: number;
+  // Normalised coordinates 0-1 so sender doesn't need to know target resolution
+  normX?: number;
+  normY?: number;
+}
+
+function executeControlAction(robot: any, action: RemoteControlAction) {
+  const screenSize = robot.getScreenSize();
+
+  // Convert normalised coords to absolute pixels
+  const ax = action.normX != null
+    ? Math.round(action.normX * screenSize.width)
+    : action.x ?? 0;
+  const ay = action.normY != null
+    ? Math.round(action.normY * screenSize.height)
+    : action.y ?? 0;
+
+  switch (action.type) {
+    case 'mousemove':
+      robot.moveMouse(ax, ay);
+      break;
+    case 'mousedown':
+      robot.moveMouse(ax, ay);
+      robot.mouseToggle('down', action.button ?? 'left');
+      break;
+    case 'mouseup':
+      robot.moveMouse(ax, ay);
+      robot.mouseToggle('up', action.button ?? 'left');
+      break;
+    case 'click':
+      robot.moveMouse(ax, ay);
+      robot.mouseClick(action.button ?? 'left');
+      break;
+    case 'scroll':
+      robot.scrollMouse(action.scrollX ?? 0, action.scrollY ?? 0);
+      break;
+    case 'keydown':
+      if (action.key) robot.keyToggle(action.key, 'down');
+      break;
+    case 'keyup':
+      if (action.key) robot.keyToggle(action.key, 'up');
+      break;
+    case 'type':
+      if (action.text) robot.typeString(action.text);
+      break;
   }
 }
 
 app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
