@@ -1,5 +1,6 @@
-import { app, BrowserWindow, desktopCapturer, ipcMain } from 'electron';
+import { app, BrowserWindow, desktopCapturer, ipcMain, dialog } from 'electron';
 import path from 'path';
+import fs from 'fs';
 
 app.disableHardwareAcceleration();
 
@@ -81,6 +82,36 @@ async function createWindow() {
     } catch {
       // robotjs not installed — control feature silently unavailable
     }
+  });
+
+  // --- 🎥 5. Save Recording Handler ---
+  ipcMain.on('save-recording', async (_event, { data, mimeType }) => {
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const ext = mimeType.includes('webm') ? 'webm' : 'mp4';
+    const defaultName = `RDA-Recording-${timestamp}.${ext}`;
+
+    // Open save dialog so user can choose where to save
+    const { filePath, canceled } = await dialog.showSaveDialog(mainWindow!, {
+        title: 'Save Recording',
+        defaultPath: path.join(app.getPath('videos'), defaultName),
+        filters: [
+            { name: 'WebM Video', extensions: ['webm'] },
+            { name: 'All Files', extensions: ['*'] },
+        ],
+    });
+
+    if (canceled || !filePath) return;
+
+    // Write the file
+    const buffer = Buffer.from(data);
+    fs.writeFile(filePath, buffer, (err) => {
+        if (err) {
+            console.error('Failed to save recording:', err);
+        } else {
+            console.log(`Recording saved to: ${filePath}`);
+        }
+    });
   });
 
   if (isProd) {

@@ -16,4 +16,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   sendControlAction: (action: object) => {
     ipcRenderer.send('remote-control', action);
   },
+
+  // Add this
+    saveRecording: (data: number[], mimeType: string) => {
+        ipcRenderer.send('save-recording', { data, mimeType });
+    },
 });

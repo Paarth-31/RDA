@@ -38,7 +38,7 @@ export interface MediaToggles {
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
-export const usePeerConnection = (myId: string, _remoteId: string) => {
+export const usePeerConnection = (myId: string, _remoteId: string, onFileChunk?: (data: ArrayBuffer | string) => void) => {
   // ── Connection state ──────────────────────────────────────────────────────
   const [socket, setSocket] = useState<Socket | null>(null);
   const [status, setStatus] = useState('Disconnected');
@@ -66,15 +66,51 @@ export const usePeerConnection = (myId: string, _remoteId: string) => {
   // Two separate data channels: "chat" (E2EE text) and "control" (mouse/kb)
   const chatChannelRef = useRef<RTCDataChannel | null>(null);
   const controlChannelRef = useRef<RTCDataChannel | null>(null);
+  const fileChannelRef = useRef<RTCDataChannel | null>(null); // ← new
   const cryptoSessionRef = useRef<Awaited<ReturnType<typeof buildCryptoSession>> | null>(null);
   const myKeyPairRef = useRef<CryptoKeyPair | null>(null);
   // Keep track of whether this side is the initiator (created the data channels)
   const isInitiatorRef = useRef(false);
+  const onFileChunkRef = useRef(onFileChunk);  // ← keep latest callback in ref
+  // Keep ref in sync when callback changes
+  useEffect(() => {
+    onFileChunkRef.current = onFileChunk;
+  }, [onFileChunk]);
   // Local tracks refs for toggling without re-negotiation
   const screenVideoSenderLabel = 'screen-video';
   const screenAudioSenderLabel = 'screen-audio';
   const micSenderLabel = 'mic-audio';
   const camSenderLabel = 'cam-video';
+
+  // ── Attach file channel ──────────────────────────────────────────────────
+  const attachFileChannel = useCallback((channel: RTCDataChannel) => {
+    fileChannelRef.current = channel;
+    channel.binaryType = 'arraybuffer';
+
+    channel.onmessage = (event: MessageEvent) => {
+      // Forward every message (string metadata or ArrayBuffer chunk) to the hook
+      if (onFileChunkRef.current) {
+        onFileChunkRef.current(event.data);
+      }
+    };
+
+    channel.onerror = (e) => console.error('File channel error:', e);
+
+    if (channel.readyState !== 'open') {
+      channel.onopen = () => console.log('File channel opened');
+    } else {
+      console.log('File channel already open');
+    }
+  }, []);
+
+  // ── Expose sendFileChunk so useFileTransfer can call it ──────────────────
+  const sendFileChunk = useCallback((data: string | ArrayBuffer) => {
+    if (!fileChannelRef.current || fileChannelRef.current.readyState !== 'open') {
+      console.warn('File channel not open');
+      return;
+    }
+    fileChannelRef.current.send(data as any);
+  }, []);
 
   // ──────────────────────────────────────────────────────────────────────────
   // CHAT CHANNEL: E2EE via ECDH + AES-GCM + HMAC
@@ -210,8 +246,13 @@ export const usePeerConnection = (myId: string, _remoteId: string) => {
           ordered: false,     // control events are best-effort, low-latency
           maxRetransmits: 0,
         });
+        const fileCh = peer.peer.createDataChannel('file-transfer', { // ← new
+          ordered: true,
+          maxRetransmits: 30,
+        });
         attachChatChannel(chatCh);
         attachControlChannel(ctrlCh);
+        attachFileChannel(fileCh); // ← new
       }
 
       // Auto-start screen share with system audio
@@ -300,6 +341,8 @@ export const usePeerConnection = (myId: string, _remoteId: string) => {
           attachChatChannel(event.channel);
         } else if (event.channel.label === 'control') {
           attachControlChannel(event.channel);
+        } else if (event.channel.label === 'file-transfer') { // ← new
+          attachFileChannel(event.channel);
         }
       };
 
@@ -317,7 +360,7 @@ export const usePeerConnection = (myId: string, _remoteId: string) => {
       newSocket.disconnect();
       socketRef.current = null;
     };
-  }, [myId, attachChatChannel, attachControlChannel]);
+  }, [myId, attachChatChannel, attachControlChannel, attachFileChannel]);
 
   // ──────────────────────────────────────────────────────────────────────────
   // PUBLIC ACTIONS
@@ -490,5 +533,6 @@ export const usePeerConnection = (myId: string, _remoteId: string) => {
     cryptoReady,
     // Remote control
     sendControlEvent,
+    sendFileChunk,  // ← new export
   };
 };
