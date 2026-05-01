@@ -40,3 +40,6 @@ electron/dist/
 
 # Test coverage
 coverage/
+
+*.zip
+GoogleAuthID.json

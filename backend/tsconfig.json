@@ -6,7 +6,13 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+
+    // ── ADDED: "types": ["node"] ─────────────────────────────────────────────
+    // Without this, TypeScript couldn't resolve Node.js built-ins like fs,
+    // path, and Buffer even though @types/node is installed. This caused
+    // `tsc` to fail silently, which meant `electron .` never ran.
+    "types": ["node"]
   },
   "include": ["src/**/*"]
 }

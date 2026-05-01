@@ -1,15 +1,219 @@
+// // frontend/src/services/api.ts
+// // Centralised API client — reads the JWT from localStorage and attaches it.
+// // SERVER_URL falls back to localhost for development.
+
+// const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'http://localhost:8080';
+
+// // ── Token helpers ─────────────────────────────────────────────────────────
+
+// // Gets token from localStorage (custom auth) OR from Keycloak session
+// export function getToken(): string | null {
+//   // Try localStorage first (custom auth fallback)
+//   const stored = localStorage.getItem('rda_access_token');
+//   if (stored) return stored;
+
+//   // Try Keycloak — it stores the token on the window via keycloak-js
+//   // We read it from the hidden keycloak instance
+//   try {
+//     const kc = (window as any).__keycloak_token;
+//     if (kc) return kc;
+//   } catch {
+//     return null;
+//   }
+//   return null;
+// }
+
+// export function setTokens(accessToken: string, refreshToken: string) {
+//   localStorage.setItem('rda_access_token', accessToken);
+//   localStorage.setItem('rda_refresh_token', refreshToken);
+// }
+
+// export function clearTokens() {
+//   localStorage.removeItem('rda_access_token');
+//   localStorage.removeItem('rda_refresh_token');
+// }
+
+// export function isLoggedIn(): boolean {
+//   return !!getToken();
+// }
+
+// // ── Core fetch wrapper ────────────────────────────────────────────────────
+
+// async function request<T>(
+//   method: string,
+//   path: string,
+//   body?: object
+// ): Promise<T> {
+//   const token = getToken();
+//   const headers: Record<string, string> = {
+//     'Content-Type': 'application/json',
+//   };
+//   if (token) headers['Authorization'] = `Bearer ${token}`;
+
+//   const res = await fetch(`${SERVER_URL}${path}`, {
+//     method,
+//     headers,
+//     body: body ? JSON.stringify(body) : undefined,
+//   });
+
+//   if (!res.ok) {
+//     const err = await res.json().catch(() => ({ error: res.statusText }));
+//     throw new Error(err.error ?? `HTTP ${res.status}`);
+//   }
+
+//   // 204 No Content
+//   if (res.status === 204) return {} as T;
+//   return res.json() as Promise<T>;
+// }
+
+// const get  = <T>(path: string)              => request<T>('GET',    path);
+// const post = <T>(path: string, body: object) => request<T>('POST',   path, body);
+// const patch = <T>(path: string, body: object) => request<T>('PATCH',  path, body);
+// const del  = <T>(path: string)              => request<T>('DELETE', path);
+
+// // ── Auth ──────────────────────────────────────────────────────────────────
+
+// export interface AuthUser {
+//   id: string;
+//   email: string;
+//   display_name: string;
+//   avatar_url: string | null;
+//   role: string;
+//   is_verified: boolean;
+//   two_fa_enabled: boolean;
+//   created_at: string;
+// }
+
+// export interface AuthResponse {
+//   user: AuthUser;
+//   accessToken: string;
+//   refreshToken: string;
+// }
+
+// export const authApi = {
+//   register: (email: string, password: string, displayName: string) =>
+//     post<AuthResponse>('/auth/register', { email, password, displayName }),
+
+//   login: (email: string, password: string) =>
+//     post<AuthResponse>('/auth/login', { email, password }),
+
+//   refresh: (refreshToken: string) =>
+//     post<{ accessToken: string }>('/auth/refresh', { refreshToken }),
+
+//   logout: (refreshToken: string) =>
+//     post<{ ok: boolean }>('/auth/logout', { refreshToken }),
+
+//   me: () => get<AuthUser>('/auth/me'),
+
+//   changePassword: (currentPassword: string, newPassword: string) =>
+//     patch<{ ok: boolean }>('/auth/password', { currentPassword, newPassword }),
+// };
+
+// // ── User profile ──────────────────────────────────────────────────────────
+
+// export interface UserProfile {
+//   id: string;
+//   email: string;
+//   display_name: string;
+//   avatar_url: string | null;
+//   role: string;
+//   full_name: string | null;
+//   bio: string | null;
+//   timezone: string | null;
+//   locale: string | null;
+//   preferred_lang: string | null;
+//   phone: string | null;
+//   country_code: string | null;
+//   two_fa_enabled: boolean;
+// }
+
+// export interface UserStats {
+//   total_sessions: number;
+//   total_duration_seconds: number;
+//   avg_duration_seconds: number;
+//   last_session_at: string | null;
+//   sessions_today: number;
+// }
+
+// export const profileApi = {
+//   get: () => get<UserProfile>('/auth/me'),
+
+//   update: (updates: Partial<UserProfile>) =>
+//     patch<UserProfile>('/profile', updates),
+
+//   stats: () => get<UserStats>('/profile/stats'),
+// };
+
+// // ── Sessions ──────────────────────────────────────────────────────────────
+
+// export interface Session {
+//   id: string;
+//   host_display_id: string;
+//   controller_id: string | null;
+//   controller_name: string | null;
+//   status: string;
+//   start_time: string;
+//   end_time: string | null;
+//   duration_seconds: number | null;
+//   screen_audio: boolean;
+//   video_call: boolean;
+//   control_enabled: boolean;
+//   summary: string | null;
+//   ai_summary: string | null;
+// }
+
+// export const sessionsApi = {
+//   list: (limit = 20) =>
+//     get<Session[]>(`/sessions?limit=${limit}`),
+
+//   get: (id: string) =>
+//     get<Session>(`/sessions/${id}`),
+
+//   create: (data: {
+//     hostDisplayId: string;
+//     screenAudio?: boolean;
+//     videoCall?: boolean;
+//     controlEnabled?: boolean;
+//   }) => post<Session>('/sessions', data),
+
+//   end: (id: string, summary?: string, stats?: object) =>
+//     patch<Session>(`/sessions/${id}/end`, { summary, stats }),
+// };
+
+// // ── Favourites ────────────────────────────────────────────────────────────
+
+// export interface Favourite {
+//   id: string;
+//   remote_id: string;
+//   label: string | null;
+//   last_used_at: string | null;
+//   use_count: number;
+//   created_at: string;
+// }
+
+// export const favouritesApi = {
+//   list: () => get<Favourite[]>('/favourites'),
+
+//   upsert: (remoteId: string, label?: string) =>
+//     post<Favourite>('/favourites', { remoteId, label }),
+
+//   delete: (id: string) => del<{ ok: boolean }>(`/favourites/${id}`),
+// };
+
+
 // frontend/src/services/api.ts
-// Centralised API client — reads the JWT from localStorage and attaches it.
-// SERVER_URL falls back to localhost for development.
+// Centralised API client — attaches the Keycloak JWT to every request.
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'http://localhost:8080';
 
 // ── Token helpers ─────────────────────────────────────────────────────────
 
+// Reads the Keycloak token exposed on window by AuthProvider
 export function getToken(): string | null {
-  return localStorage.getItem('rda_access_token');
+  return (window as any).__keycloak_token ?? null;
 }
 
+// These are kept for compatibility but unused with Keycloak auth
 export function setTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem('rda_access_token', accessToken);
   localStorage.setItem('rda_refresh_token', refreshToken);
@@ -44,19 +248,34 @@ async function request<T>(
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error ?? `HTTP ${res.status}`);
+    // Try to parse JSON error — if server returns plain text, wrap it
+    const text = await res.text();
+    let errMsg = res.statusText;
+    try {
+      const json = JSON.parse(text);
+      errMsg = json.error ?? json.message ?? errMsg;
+    } catch {
+      // Plain text response — use status text
+      errMsg = text || errMsg;
+    }
+    throw new Error(errMsg);
   }
 
-  // 204 No Content
   if (res.status === 204) return {} as T;
-  return res.json() as Promise<T>;
+
+  // Same safe parse for success responses
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(`Server returned invalid JSON: ${text.slice(0, 100)}`);
+  }
 }
 
-const get  = <T>(path: string)              => request<T>('GET',    path);
-const post = <T>(path: string, body: object) => request<T>('POST',   path, body);
-const patch = <T>(path: string, body: object) => request<T>('PATCH',  path, body);
-const del  = <T>(path: string)              => request<T>('DELETE', path);
+const get   = <T>(path: string)               => request<T>('GET',    path);
+const post  = <T>(path: string, body: object)  => request<T>('POST',   path, body);
+const patch = <T>(path: string, body: object)  => request<T>('PATCH',  path, body);
+const del   = <T>(path: string)               => request<T>('DELETE', path);
 
 // ── Auth ──────────────────────────────────────────────────────────────────
 
@@ -124,10 +343,7 @@ export interface UserStats {
 
 export const profileApi = {
   get: () => get<UserProfile>('/auth/me'),
-
-  update: (updates: Partial<UserProfile>) =>
-    patch<UserProfile>('/profile', updates),
-
+  update: (updates: Partial<UserProfile>) => patch<UserProfile>('/profile', updates),
   stats: () => get<UserStats>('/profile/stats'),
 };
 
@@ -150,19 +366,14 @@ export interface Session {
 }
 
 export const sessionsApi = {
-  list: (limit = 20) =>
-    get<Session[]>(`/sessions?limit=${limit}`),
-
-  get: (id: string) =>
-    get<Session>(`/sessions/${id}`),
-
+  list: (limit = 20) => get<Session[]>(`/sessions?limit=${limit}`),
+  get: (id: string) => get<Session>(`/sessions/${id}`),
   create: (data: {
     hostDisplayId: string;
     screenAudio?: boolean;
     videoCall?: boolean;
     controlEnabled?: boolean;
   }) => post<Session>('/sessions', data),
-
   end: (id: string, summary?: string, stats?: object) =>
     patch<Session>(`/sessions/${id}/end`, { summary, stats }),
 };
@@ -180,9 +391,47 @@ export interface Favourite {
 
 export const favouritesApi = {
   list: () => get<Favourite[]>('/favourites'),
-
   upsert: (remoteId: string, label?: string) =>
     post<Favourite>('/favourites', { remoteId, label }),
-
   delete: (id: string) => del<{ ok: boolean }>(`/favourites/${id}`),
+};
+
+// ── Recordings (local files via Electron IPC) ─────────────────────────────
+
+export interface RecordingFile {
+  id: string;
+  name: string;
+  path: string;
+  size: number;       // bytes
+  duration: number;   // seconds, 0 if unknown
+  createdAt: string;  // ISO date string
+}
+
+export const recordingsApi = {
+  // Ask Electron main process for the list of saved recordings
+  list: (): Promise<RecordingFile[]> => {
+    return new Promise((resolve) => {
+      const api = (window as any).electronAPI;
+      if (!api?.listRecordings) {
+        resolve([]);
+        return;
+      }
+      api.listRecordings().then(resolve).catch(() => resolve([]));
+    });
+  },
+
+  // Open the file in the system's default video player
+  play: (filePath: string) => {
+    (window as any).electronAPI?.openFile?.(filePath);
+  },
+
+  // Trigger a save-as dialog to copy the file somewhere else
+  export: (filePath: string) => {
+    (window as any).electronAPI?.exportRecording?.(filePath);
+  },
+
+  // Delete from disk
+  delete: (filePath: string): Promise<boolean> => {
+    return (window as any).electronAPI?.deleteRecording?.(filePath) ?? Promise.resolve(false);
+  },
 };

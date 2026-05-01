@@ -1,13 +1,18 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo",
+    // ── REMOVED: "composite" and "tsBuildInfoFile" ──────────────────────────
+    // "composite": true requires TypeScript to emit output files, but
+    // "noEmit": true tells it not to — these are mutually exclusive.
+    // Composite mode is for TypeScript project references (monorepo build
+    // caching). Vite handles all bundling here, so composite is not needed.
+
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
 
+    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -16,14 +21,17 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path aliases — baseUrl required alongside paths */
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
 
+    /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src", "vite-env.d.ts"]
 }

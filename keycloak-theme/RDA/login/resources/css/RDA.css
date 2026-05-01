@@ -1,0 +1,357 @@
+/* StreamLink — Keycloak Login Theme
+   Matches the app's dark indigo/violet design system */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+/* ── Reset & base ─────────────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #080809;
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  color: rgba(255,255,255,0.85);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Ambient glow background ──────────────────────────────────────────── */
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  width: 600px; height: 600px;
+  top: -100px; left: -100px;
+  background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+}
+
+body::after {
+  width: 500px; height: 500px;
+  bottom: -100px; right: -100px;
+  background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+}
+
+/* ── Layout wrapper ───────────────────────────────────────────────────── */
+
+#kc-container-wrapper,
+.login-pf-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────── */
+
+#kc-content,
+.card-pf {
+  width: 100%;
+  max-width: 380px;
+  background: #111113;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+  position: relative;
+}
+
+/* ── Logo & header ────────────────────────────────────────────────────── */
+
+#kc-header,
+#kc-header-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+
+#kc-header::before {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  border-radius: 14px;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+  /* Monitor icon via clip-path approximation */
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='2' y='3' width='20' height='14' rx='2' ry='2'/%3E%3Cline x1='8' y1='21' x2='16' y2='21'/%3E%3Cline x1='12' y1='17' x2='12' y2='21'/%3E%3C/svg%3E") center/60% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='2' y='3' width='20' height='14' rx='2' ry='2'/%3E%3Cline x1='8' y1='21' x2='16' y2='21'/%3E%3Cline x1='12' y1='17' x2='12' y2='21'/%3E%3C/svg%3E") center/60% no-repeat;
+}
+
+#kc-header-wrapper span,
+.kc-header {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+/* App name override */
+#kc-header-wrapper::after {
+  content: 'RDA';
+  display: block;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+  margin-top: 0.25rem;
+}
+
+/* Hide the default realm name Keycloak puts in */
+#kc-header span { display: none; }
+
+/* ── Form groups ──────────────────────────────────────────────────────── */
+
+.form-group {
+  margin-bottom: 0.85rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.4rem;
+}
+
+/* ── Inputs ───────────────────────────────────────────────────────────── */
+
+.form-control {
+  width: 100%;
+  background: rgba(0,0,0,0.4) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 0.9rem !important;
+  font-family: inherit !important;
+  color: #fff !important;
+  outline: none !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: none !important;
+}
+
+.form-control:focus {
+  border-color: rgba(99,102,241,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12) !important;
+}
+
+.form-control::placeholder {
+  color: rgba(255,255,255,0.15) !important;
+}
+
+/* Password wrapper with show/hide button */
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper .form-control {
+  padding-right: 2.75rem !important;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.25);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.toggle-password:hover { color: rgba(255,255,255,0.6); }
+
+/* ── Field errors ─────────────────────────────────────────────────────── */
+
+.field-error,
+.pf-m-error {
+  display: block;
+  font-size: 0.75rem;
+  color: #f87171;
+  margin-top: 0.35rem;
+}
+
+/* Global alert */
+#kc-content-wrapper .alert {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: #f87171;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.alert-error .pficon { display: none; }
+
+/* ── Options row (remember me + forgot) ──────────────────────────────── */
+
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.5rem 0 1rem;
+  min-height: 1.5rem;
+}
+
+.checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.checkbox input[type="checkbox"] {
+  accent-color: #6366f1;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.forgot-link {
+  font-size: 0.75rem;
+  color: #818cf8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.forgot-link:hover { color: #a5b4fc; }
+
+/* ── Submit button ────────────────────────────────────────────────────── */
+
+.btn-submit {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(99,102,241,0.25);
+}
+
+.btn-submit:hover {
+  opacity: 0.92;
+  box-shadow: 0 6px 28px rgba(99,102,241,0.35);
+}
+
+.btn-submit:active { transform: scale(0.98); }
+
+.btn-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Social providers ─────────────────────────────────────────────────── */
+
+.social-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0 0.85rem;
+}
+
+.social-divider::before,
+.social-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+}
+
+.social-divider span {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.2);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.social-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.55);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.social-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* ── Register link ────────────────────────────────────────────────────── */
+
+.register-link {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.25);
+}
+
+.register-link a {
+  color: #818cf8;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 0.3rem;
+  transition: color 0.15s;
+}
+
+.register-link a:hover { color: #a5b4fc; }
+
+/* ── Hide Keycloak default card/container chrome ──────────────────────── */
+
+.login-pf-page .card-pf { border: none !important; box-shadow: none !important; }
+#kc-info { display: none; }
+.login-pf-brand { display: none; }
