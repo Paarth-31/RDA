@@ -62,6 +62,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send('export-recording', filePath);
   },
 
+  startGoogleOAuth: (url: string) => ipcRenderer.invoke('start-google-oauth', url),
   // Delete a recording from disk
   deleteRecording: (filePath: string) => ipcRenderer.invoke('delete-recording', filePath),
 });

@@ -1,45 +1,64 @@
-# Dependencies
+# ── Dependencies ──────────────────────────────────────────────────────────────
 node_modules/
 .pnp
 .pnp.js
 
-# Build outputs
+# ── Build outputs ─────────────────────────────────────────────────────────────
 dist/
 build/
 out/
 .next/
 
-# Environment files — NEVER commit these
+# ── Environment files — NEVER commit these ────────────────────────────────────
 .env
 .env.local
 .env.development
 .env.production
 .env.*.local
+
+# ── TLS / private keys ────────────────────────────────────────────────────────
 *.pem
 rds-ca.pem
 
-# Logs
+# ── Google credentials ────────────────────────────────────────────────────────
+GoogleAuthID.json
+*.json.credentials
+
+# ── Archives (zipped sub-packages) ───────────────────────────────────────────
+*.zip
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
 logs/
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# OS files
+# ── OS files ──────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 
-# Editor
+# ── Editor ────────────────────────────────────────────────────────────────────
 .vscode/settings.json
 .idea/
 *.swp
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# TypeScript build info
+# ── TypeScript build info ─────────────────────────────────────────────────────
 *.tsbuildinfo
 
-# Electron
+# ── Electron packaged output ──────────────────────────────────────────────────
 electron/dist/
+release/
 
-# Test coverage
+# ── Test coverage ─────────────────────────────────────────────────────────────
 coverage/
 
-*.zip
-GoogleAuthID.json
+# ── PM2 ───────────────────────────────────────────────────────────────────────
+ecosystem.config.js
+.pm2/
