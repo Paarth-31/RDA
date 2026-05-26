@@ -1,4 +1,4 @@
-# Contributing to StreamLink
+# Contributing to GlyphConnect
 
 Thank you for taking the time to contribute. This document covers the development workflow, branch strategy, and code standards.
 

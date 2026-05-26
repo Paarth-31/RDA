@@ -139,7 +139,7 @@ export function HomePage({ onStartSession, onNavigate }: Props) {
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
             <Monitor className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-[15px] tracking-tight">StreamLink</span>
+          <span className="font-bold text-[15px] tracking-tight">GlyphConnect</span>
           <span className="text-[10px] font-mono text-white/20 ml-1">v1.0</span>
         </div>
 

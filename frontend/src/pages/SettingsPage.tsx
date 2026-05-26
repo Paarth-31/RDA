@@ -83,7 +83,7 @@ function GeneralSettings() {
   return (
     <div>
       <h2 className="text-base font-bold mb-5 text-white/90">General</h2>
-      <SettingRow label="Launch on startup" sub="Start StreamLink when your computer boots"><Toggle value={autoStart} onChange={setAutoStart} /></SettingRow>
+      <SettingRow label="Launch on startup" sub="Start GlyphConnect when your computer boots"><Toggle value={autoStart} onChange={setAutoStart} /></SettingRow>
       <SettingRow label="Start minimized" sub="Hide the window on startup"><Toggle value={startMinimized} onChange={setStartMin} /></SettingRow>
       <SettingRow label="Theme">
         <div className="flex gap-2">

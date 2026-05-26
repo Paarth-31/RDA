@@ -1,4 +1,4 @@
-# StreamLink — Remote Desktop Application
+# GlyphConnect — Remote Desktop Application
 
 > Peer-to-peer remote desktop, screen sharing, encrypted chat, and file transfer — packaged as a cross-platform Electron app.
 
@@ -22,7 +22,7 @@
 
 ## Overview
 
-StreamLink lets two users connect directly over WebRTC for:
+GlyphConnect lets two users connect directly over WebRTC for:
 
 - **Remote desktop control** — share your screen and grant full mouse/keyboard control to the other party
 - **Screen sharing** — one-way or two-way screen broadcast

@@ -539,7 +539,7 @@ async function createWindow() {
         <html><body style="background:#080809;color:white;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
           <div style="text-align:center">
             <h2>✅ Signed in successfully</h2>
-            <p style="color:rgba(255,255,255,0.4)">You can close this tab and return to StreamLink</p>
+            <p style="color:rgba(255,255,255,0.4)">You can close this tab and return to GlyphCnnect</p>
           </div>
         </html>
       `);

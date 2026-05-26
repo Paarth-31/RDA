@@ -141,7 +141,7 @@ export const Navbar = ({ userName, onLogout }: NavbarProps) => (
           <Monitor className="text-primary w-5 h-5" />
         </div>
         <span className="text-xl font-bold tracking-tighter text-white">
-          StreamLink<span className="text-primary">.</span>
+          GlyphConnect<span className="text-primary">.</span>
         </span>
       </div>
       <div className="hidden lg:flex items-center gap-8">

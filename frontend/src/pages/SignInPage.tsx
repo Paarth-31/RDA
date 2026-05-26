@@ -71,7 +71,7 @@ export function SignInPage() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-2xl shadow-indigo-500/30 mb-3">
             <Monitor className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-xl font-black text-white tracking-tight">StreamLink</h1>
+          <h1 className="text-xl font-black text-white tracking-tight">GlyphConnect</h1>
           <p className="text-[12px] text-white/30 mt-1">
             {mode === 'signin' ? 'Sign in to your account' : 'Create your account'}
           </p>

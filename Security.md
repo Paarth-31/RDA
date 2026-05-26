@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you find a security vulnerability in StreamLink, **please do not open a public GitHub Issue**.
+If you find a security vulnerability in GlyphCOnnect, **please do not open a public GitHub Issue**.
 
 Instead, email the maintainer directly with:
 - A description of the vulnerability
